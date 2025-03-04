@@ -114,6 +114,9 @@ class GRPOTrainer(RLHFTrainerMixin, SwiftMixin, HFGRPOTrainer):
         use_vllm = args.use_vllm
         use_lmdeploy = args.use_lmdeploy
 
+        trigger_config_file = kwargs.pop('trigger_config_file', None)
+        trigger_config_name = kwargs.pop('trigger_config_name', 'trigger_config')
+
         super().__init__(model, ref_model, *_args, **kwargs)
 
         num_processes = self.accelerator.num_processes
@@ -171,7 +174,15 @@ class GRPOTrainer(RLHFTrainerMixin, SwiftMixin, HFGRPOTrainer):
                                           'Please install vLLM with `pip install vllm` to use it.')
                     from swift.llm import VllmEngine
                     from swift.tuners import Swift
-                    with Swift.grpo_context(model, self.template.processor):
+                    from swift.llm.utils import patch_vllm
+                    tokenizer_trigger_kwargs = {'tokenizer': self.processing_class}
+                    if trigger_config_file is not None:
+                        exec(
+                            open(trigger_config_file, 'r+').read(),
+                            globals(),
+                            tokenizer_trigger_kwargs,
+                        )
+                    with patch_vllm(), Swift.grpo_context(model, self.template.processor):
                         self.engine = VllmEngine(
                             model.model_dir,
                             model.model_info.torch_dtype,
@@ -182,7 +193,8 @@ class GRPOTrainer(RLHFTrainerMixin, SwiftMixin, HFGRPOTrainer):
                             max_num_seqs=args.vllm_max_num_seqs,
                             enforce_eager=args.vllm_enforce_eager,
                             limit_mm_per_prompt=args.vllm_limit_mm_per_prompt,
-                            max_model_len=args.vllm_max_model_len)
+                            max_model_len=args.vllm_max_model_len,
+                            trigger_config=tokenizer_trigger_kwargs.pop(trigger_config_name, None))
                     self.engine.default_template = self.template
                 elif use_lmdeploy:
                     # https://github.com/tastelikefeet/lmdeploy.git@feat/reload_state_dict_064

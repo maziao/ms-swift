@@ -99,6 +99,9 @@ class GRPOArgumentsMixin:
 
     async_generate: bool = False
 
+    # vLLM Tool in GRPO
+    trigger_config_file: Optional[str] = None
+    trigger_config_name: str = 'trigger_config'
 
 @dataclass
 class TrainingArguments(SwiftArgumentsMixin, HfTrainingArguments):

@@ -89,6 +89,8 @@ class SwiftRLHF(SwiftSft):
             trainer_kwargs['reward_template'] = self.reward_template
         if self.args.rlhf_type == 'grpo':
             trainer_kwargs['reward_funcs'] = self.args.reward_funcs
+            trainer_kwargs['trigger_config_file'] = self.args.trigger_config_file
+            trainer_kwargs['trigger_config_name'] = self.args.trigger_config_name
         return trainer_kwargs
 
 

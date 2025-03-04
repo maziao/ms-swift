@@ -59,6 +59,7 @@ class VllmEngine(InferEngine):
         max_lora_rank: int = 16,
         enable_prefix_caching: bool = False,
         engine_kwargs: Optional[Dict[str, Any]] = None,
+        trigger_config: Optional[Dict] = None,
     ) -> None:
         self.processor = get_model_tokenizer(
             model_id_or_path,
@@ -86,6 +87,7 @@ class VllmEngine(InferEngine):
             enable_prefix_caching=enable_prefix_caching,
             device=device,
             engine_kwargs=engine_kwargs,
+            trigger_config=trigger_config,
         )
         context, npu_context = nullcontext(), nullcontext()
         if tensor_parallel_size == 1 and pipeline_parallel_size == 1:
@@ -117,6 +119,7 @@ class VllmEngine(InferEngine):
         max_lora_rank: int = 16,
         enable_prefix_caching: bool = False,
         engine_kwargs: Optional[Dict[str, Any]] = None,
+        trigger_config: Optional[Dict] = None,
     ) -> None:
         if engine_kwargs is None:
             engine_kwargs = {}
@@ -155,6 +158,7 @@ class VllmEngine(InferEngine):
             trust_remote_code=True,
             enable_prefix_caching=enable_prefix_caching,
             device=device,
+            trigger_config=trigger_config,
             **engine_kwargs,
         )
         self.engine_args = engine_args
